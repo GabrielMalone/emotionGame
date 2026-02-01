@@ -477,6 +477,7 @@ CREATE TABLE camodb.emotion_guess_game (
   idUser INT NOT NULL,
   idNPC INT NOT NULL,
   idEmotion INT NOT NULL,
+  active TINYINT(1) NOT NULL DEFAULT 0,
 
   -- game state
   described TINYINT(1) NOT NULL DEFAULT 0,

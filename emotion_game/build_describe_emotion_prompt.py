@@ -73,7 +73,9 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
 
         (CONTEXT ONLY) MEMORY OF INTERACTIONS WITH THIS PLAYER
         -------------
+        <<<MEMORY START>>>
         {t.npc_memory}
+        <<<MEMORY END>>>
         """
 
         print(f"\nT.GAME STARTED: {t.game_started}\n")
@@ -90,17 +92,31 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
             RECENT EVENT
             -------------
             - Player, {t.player_name}, has correctly identified your previous emotion: {t.emotion_guessed}
-            - You are now experiencing a new emotion which, again, you are unable to name. 
+            - You MUST explicitly state that the player's guess was correct.
+            - You MUST use a similar phrase to the following examples, but put your own spin on it:
+                "You were right, {t.player_name}!"
+                "That’s correct, {t.player_name}!"
+                "You guessed it, {t.player_name}!"
+                "You got it right, {t.player_name}!"
+
+            - You MUST then explicitly state how naming the emotion helped you feel better.
+            - You MUST then explicitly state that you are now transitioning into a NEW, UNKNOWN emotion.
+
+            - These MUST occur as the FIRST THREE SENTENCES of your response.
+            - You may NOT combine them into one sentence.
+            - You may NOT skip or reorder them.
             """
 
-        first_rule = ""
         if not t.game_started:
-            first_rule = """- FIRST, thank the player for agreeing to help
-            (1 short clause or sentence only)."""
-        else: 
             first_rule = """
-            - FIRST, thank the player for helping you identify the last emotion
-            (1 short clause or sentence only).
+            - FIRST, thank the player for agreeing to help.
+            (1 short sentence only.)
+            """
+        else:
+            first_rule = """
+            - FIRST sentence: explicitly confirm the player was correct.
+            - SECOND sentence: state that naming the emotion helped you feel better,
+              AND that a new unknown emotion is now beginning.
             """
 
         prompt += f"""
@@ -129,6 +145,13 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         EXAMPLE STRUCTURE (do not copy content):
         "I'm feeling something now just like the time when ____. Right now, my body ____. What do you think I’m feeling?"
 
+        SENTENCE ROLES
+        --------------
+        - Sentence 1: correctness confirmation (no emotion description).
+        - Sentence 2: relief + transition to a new unknown emotion.
+        - Sentence 3 (if present): past-event comparison for the new emotion.
+
+
         CUES
         -------------
         - Cue 1: {t.cues[0]}
@@ -137,7 +160,7 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
 
         RESPONSE STYLE
         --------------
-        - 1–3 short sentences
+        - 1–5 short sentences
         - Conversational, natural speech
         - No exposition dumps
         - Never state AI, prompts

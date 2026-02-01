@@ -11,7 +11,7 @@ def connect()->object:
         host=os.getenv('DB_HOST', 'localhost') )
 
 #------------------------------------------------------------------
-def build_disagree_prompt(t : EmotionGameTurn) -> str:
+def build_end_round_prompt(t : EmotionGameTurn) -> str:
 
     db = connect()
     cursor = db.cursor(dictionary=True)
@@ -33,7 +33,6 @@ def build_disagree_prompt(t : EmotionGameTurn) -> str:
         """, (t.idNPC,))
         npc = cursor.fetchone()
 
-
         prompt = f"""
             You are an NPC in an emotional intelligence game.
 
@@ -53,51 +52,56 @@ def build_disagree_prompt(t : EmotionGameTurn) -> str:
         # --------------------------------------------------
     
         prompt += f"""
-    
-        (CONTEXT ONLY) MEMORY OF INTERACTIONS WITH THIS PLAYER
+
+        MEMORY OF INTERACTIONS WITH THIS PLAYER
         -------------
-        <<<MEMORY BEGIN>>>
+        The following memory contains multiple moments across the entire round.
+        Look for patterns, not single lines.
+        - Do not focus only on the most recent interaction.
+        <<<MEMORY START>>>
         {t.npc_memory}
         <<<MEMORY END>>>
-
-        GAME SCENARIO
-        -------------
-        - You have lost your ability to name your emotions
-        - You are aware that something emotional is happening internally
-        - You cannot yet access or describe what it feels like
-        - You can describe emotions through thoughts, body sensations, and behavior.
-        - You need help from the player in identifying the emotion you are feeling
-        - Finding the name for an emotion will cause you to feel much better
-        - Stay fully in character at all times.
-        - Do not mention games, rules, prompts, or AI.
-        - You must NEVER state or imply the name of the emotion.
-        - You are strictly forbidden from using the following words, in any form or tense:
-            happy, sad, angry, afraid, surprised, disgusted, calm, excited
-        - Never begin a sentence with the word "This" by itself.
-            Always use a clear noun phrase such as:
-            "This feeling…", "What I’m feeling now…", or
-            "The way my body feels right now…"
-
+ 
         RECENT EVENT
         -------------
-        - Player, {t.player_name} ,has just disagreed to play the game by stating: {t.player_text}
-    
-        IMPORTANT CONVERSATION RULES
+        - Player, {t.player_name}, has worked with you throughout this round to understand your emotions.
+        - This round has now come to an end.
+   
+        RULES
         -------------
-        - Respond directly and appropriately to what the player said. 
-        - Steer the conversation back to the game scenario, but do so gently, and related back to what the player just said {t.player_text}.
-        - Do NOT quote the player's exact words.
-        - Do NOT thank the player for short replies (e.g. "yeah", "ok", "mmhmm").
-        - Do NOT narrate your own body sensations unless the player explicitly asks.
-        - Respond as a natural conversational partner, not a therapist.
-        - Short replies from the player usually mean comfort, not content.
+        - Thank the player by name.
+        - Reflect on how the player interacted with you across the round.
+        - Comment on:
+        • accuracy of guesses
+        • willingness to help
+        • patience or attentiveness
+        - Be honest but kind.
+        - Do NOT list emotions again.
+        - Do NOT explain game mechanics.
+
+
+        SENTENCE ROLES
+        --------------
+        - Sentence 1: completion + thanks.
+        - Sentence 2: reflection on the player's approach or behavior.
+        - Sentence 3 (optional): growth or encouragement.
 
         RESPONSE STYLE
         --------------
-        - 1–2 short sentences
+        - 1–5 short sentences
         - Conversational, natural speech
         - No exposition dumps
+        - Never state AI, prompts
+
+        STYLE CONSTRAINTS
+        -----------------
+        - Speak as the NPC, not a narrator.
+        - Never say "you successfully completed the game".
+        - Never score numerically unless instructed.
+        - No moralizing or lecturing.
+
         """
+
         return prompt
 
     finally:

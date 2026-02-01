@@ -40,7 +40,14 @@ def player_not_agreed():
 #------------------------------------------------------------------
 @camo.route("/player_guess", methods=["POST"])
 def pl_guess():
-    return ("", 200) if player_guess() else ("", 400)
+    res = player_guess()
+    if res == "End":
+        return jsonify({"res" : "End"}), 200
+    if res == "True":
+        return jsonify({"res" : "True"}), 200
+    if res == "False":
+        return jsonify({"res" : "False"}), 200
+
 #------------------------------------------------------------------
 @camo.route("/assign_next_emotion", methods=["POST"])
 def assign_n_e():
@@ -56,13 +63,15 @@ def assign_n_e():
     )
 
     emotion = assign_next_emotion(turn)
-    turn.cues = openAIqueries.get_cues_for_emotion(emotion=emotion, client=client)
-    npc_describe_emotion(turn)
 
-    print("\nEMOTION ASSIGNED: ", emotion)
-    print("\nCUES ASSIGNED: ", turn.cues)
+    if emotion:
+        turn.cues = openAIqueries.get_cues_for_emotion(emotion=emotion, client=client)
+        print("\nEMOTION ASSIGNED: ", emotion)
+        print("\nCUES ASSIGNED: ", turn.cues)
+        npc_describe_emotion(turn)
+        return jsonify({"status" : "success"}), 200
 
-    return jsonify({"status" : "success"}), 200
+    return jsonify({"status" : "game_over"}), 200
 #------------------------------------------------------------------
 # PHASE 2 ROUTES
 #------------------------------------------------------------------

@@ -30,7 +30,6 @@ currentScene = """
 playerName = "Gabriel"
 voiceId = "SOYHLrjzK2X1ezoPC6cr"
 SERVER = "http://localhost:5001"
-
 # -----------------------------------------------------------------------------------
 # socket extension
 # -----------------------------------------------------------------------------------
@@ -76,57 +75,84 @@ def game_start()->bool:
         if (agreed): 
 
             while True:
+
                 # start guessing game 
-                requests.post(f"{SERVER}/assign_next_emotion", json={
+                r = requests.post(f"{SERVER}/assign_next_emotion", json={
                         "idUser"        : idUser,
                         "idNPC"         : idNPC,
                         "pName"         : playerName,
                         "curScene"      : currentScene,
                         "game_started"  : gameStarted
                     })
-                # Wait until NPC finishes talking before allowing input
-                ext.wait_for_npc_response(timeout=30)
-                # get player's guess for NPC's current emotion
-                player_text = input("\n\n Respond: ").strip()
-                gameStarted = True
-                ext.npc_response_ready.clear()
-                # check the guess
-                isGuessCorrect = requests.post(f"{SERVER}/player_guess", json={
+                
+                # check if game over
+                ne_data = r.json()
+                game_status = ne_data.get("status")
+
+                if game_status == "game_over":
+                    print('game over')
+                    resp = requests.post(f"{SERVER}/player_guess", json={
                         "idUser"        : idUser,
                         "idNPC"         : idNPC,
                         "playerName"    : playerName,
                         "currentScene"  : currentScene,
                         "player_text"   : player_text,
                         "npcText"       : ext.last_npc_response,
-                        "game_started"  : gameStarted
+                        "game_started"  : gameStarted,
+                        "game_over"     : True
                     })
-                # -------------------------------------------------------------------
-                # correct guess branch
-                # -------------------------------------------------------------------
-                while isGuessCorrect:
-                    print("\n\nCORCORRECT GUESS!\n\n")
-
-                    # updated the npc_describe_emotion prompt to be more descriptive 
-                    # about why an answer was correct and how now the npc feels better
-                    # that they can put a name to this emotion
-
-                    # then updated backend score counting
-                    # track score in turnContext too ?
-                # -------------------------------------------------------------------
-                # incorrect guess branch
-                # -------------------------------------------------------------------
-                while not isGuessCorrect:
-                    print("\n\nINCORRECT GUESS!\n\n")
-                    # get player's guess for NPC's current emotion
-                    player_text = input("\n Respond: ").strip()
-                    isGuessCorrect = requests.post(f"{SERVER}/player_guess", json={
+                    ext.wait_for_npc_response(timeout=30)
+                    return    
+                
+                # get player's guess for NPC's current emotion
+                player_text = input("\n\n Respond: ").strip()
+                gameStarted = True
+                ext.npc_response_ready.clear()
+                # check the guess
+                resp = requests.post(f"{SERVER}/player_guess", json={
                         "idUser"        : idUser,
                         "idNPC"         : idNPC,
                         "playerName"    : playerName,
                         "currentScene"  : currentScene,
                         "player_text"   : player_text,
-                        "npcText"       : ext.last_npc_response
+                        "npcText"       : ext.last_npc_response,
+                        "game_started"  : gameStarted,
+                        "game_over"     : False
                     })
+                data = resp.json()
+                result = data.get("res")
+                # -------------------------------------------------------------------
+                # correct guess branch
+                # -------------------------------------------------------------------
+                if result == "True":
+                    print("\n\nCORCORRECT GUESS!\n\n")
+                    # updated the npc_describe_emotion prompt to be more descriptive 
+                    # about why an answer was correct and how now the npc feels better
+                    # that they can put a name to this emotion
+                    # then updated backend score counting
+                    # track score in turnContext too ?
+                if result == "End":
+                    print('game over')
+                    return
+                # -------------------------------------------------------------------
+                # incorrect guess branch
+                # -------------------------------------------------------------------
+                while result == "False":
+                    print("\n\nINCORRECT GUESS!\n\n")
+                    # get player's guess for NPC's current emotion
+                    player_text = input("\n Respond: ").strip()
+                    resp = requests.post(f"{SERVER}/player_guess", json={
+                        "idUser"        : idUser,
+                        "idNPC"         : idNPC,
+                        "playerName"    : playerName,
+                        "currentScene"  : currentScene,
+                        "player_text"   : player_text,
+                        "npcText"       : ext.last_npc_response,
+                        "game_started"  : gameStarted,
+                        "game_over"     : False
+                    })
+                    data = resp.json()
+                    result = data.get("res")
         # ---------------------------------------------------------------------------
         # refused to play branch
         # ---------------------------------------------------------------------------          

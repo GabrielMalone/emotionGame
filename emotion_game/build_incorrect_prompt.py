@@ -73,7 +73,9 @@ def build_incorrect_prompt(t : EmotionGameTurn) -> str:
 
         (CONTEXT ONLY) MEMORY OF INTERACTIONS WITH THIS PLAYER
         -------------
+        <<<MEMORY BEGIN>>>
         {t.npc_memory}
+        <<<MEMORY END>>>
 
         RECENT EVENT
         -------------

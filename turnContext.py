@@ -17,3 +17,4 @@ class EmotionGameTurn:
     last_npc_text:      Optional[str] = None
     turn_index:         int = 0
     game_started:       bool = False
+    game_over:          bool = False
