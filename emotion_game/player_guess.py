@@ -25,20 +25,16 @@ def player_guess() -> str:
 
     # categorize player's emotion guess
     turn.emotion_guessed = openAIqueries.classify_emotion_guess(turn, client)
-
     print("\nPLAYER GUESSED: ", turn.emotion_guessed)
-
     # if player did something other than make a guess
     if (turn.emotion_guessed is None):
         pass
-
-    # otherwise check to see if the emotion guessed is the correct one
-    data = get_active_emotion(turn)
 
     # this means player has correctly guessed all emotions
     # could either end game at this point
     # or increase to next difficulty level
     if turn.game_over:
+
         print("\nALL EMOTIONS ASNWERED!\n")
         turn.prompt = build_end_round_prompt(turn)
         turn.last_npc_text = streamResponse(turn, client)
@@ -50,12 +46,14 @@ def player_guess() -> str:
             room=f"user:{turn.idUser}")
         return "End"
     
+    # otherwise check to see if the emotion guessed is the correct one
+    data = get_active_emotion(turn)
     npc_emotion = data["emotion"]
     npc_emotion_guessed_id = data["idEmotion"]
-    
     print(f"\nACTIVE NPC EMOTION: {npc_emotion}\n")
 
     if (turn.emotion_guessed == npc_emotion):
+
         # mark correct in database
         print(f"CORRECT! {npc_emotion} == {turn.emotion_guessed}")
         turn.emotion_guessed_id = npc_emotion_guessed_id

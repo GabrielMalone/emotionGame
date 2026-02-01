@@ -82,7 +82,7 @@ def game_start()->bool:
                         "idNPC"         : idNPC,
                         "pName"         : playerName,
                         "curScene"      : currentScene,
-                        "game_started"  : gameStarted
+                        "game_started"  : False
                     })
                 
                 # check if game over
@@ -98,7 +98,7 @@ def game_start()->bool:
                         "currentScene"  : currentScene,
                         "player_text"   : player_text,
                         "npcText"       : ext.last_npc_response,
-                        "game_started"  : gameStarted,
+                        "game_started"  : False,
                         "game_over"     : True
                     })
                     ext.wait_for_npc_response(timeout=30)
@@ -177,12 +177,14 @@ def game_start()->bool:
                 ext.wait_for_npc_response(timeout=30)
                 
                 # check again
-                agreed = requests.post(f"{SERVER}/player_agreed_check", json={
+                res = requests.post(f"{SERVER}/player_agreed_check", json={
                     "idUser"        : idUser,
                     "idNPC"         : idNPC,
                     "playerText"    : player_text,
                     "npcText"       : ext.last_npc_response
-                })  
+                })
+                data = res.json()  
+                agreed = data.get("agreed")
                 gameStarted = agreed
                 ext.npc_response_ready.clear()
 # -----------------------------------------------------------------------------------

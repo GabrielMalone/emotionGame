@@ -32,7 +32,10 @@ def introduce_npc():
 #------------------------------------------------------------------
 @camo.route("/player_agreed_check", methods=["POST"])  
 def player_agreed_check():
-    return ("", 200) if agree_check() else ("", 400)
+    if agree_check():
+        return jsonify({"agreed" : True}), 200 
+    else: 
+        return jsonify({"agreed" : False}), 400
 #------------------------------------------------------------------
 @camo.route("/player_not_agreed", methods=["POST"])
 def player_not_agreed():
