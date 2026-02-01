@@ -61,8 +61,7 @@ def agree_check()-> bool:
 #---------------------------------------------------------------------------------
 def player_disagreed():
     try:
-
-        data        = request.json
+        data = request.json
         turn = EmotionGameTurn(
             player_name     = data["playerName"],
             idNPC           = data["idNPC"],
@@ -74,9 +73,9 @@ def player_disagreed():
         # update NPC's mem of player's response
         turn.npc_memory = f"[Player just disagreed to play with you by saying] '{turn.player_text}'"
         mem = getNPCmem(turn)
-        update_NPC_user_memory_query(turn.npc_memory)
+        update_NPC_user_memory_query(turn)
         turn.npc_memory = mem
-        prompt = build_disagree_prompt(turn)
+        turn.prompt = build_disagree_prompt(turn)
         turn.last_npc_text = streamResponse(turn, client=client)
         # debug
         print("\nPLAYER's DISAGREEMENT: ", turn.player_text)
