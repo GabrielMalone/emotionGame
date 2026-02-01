@@ -11,7 +11,7 @@ def connect()->object:
         host=os.getenv('DB_HOST', 'localhost') )
 
 #------------------------------------------------------------------
-def build_agreed_prompt(t : EmotionGameTurn) -> str:
+def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
 
     db = connect()
     cursor = db.cursor(dictionary=True)
@@ -74,16 +74,43 @@ def build_agreed_prompt(t : EmotionGameTurn) -> str:
         (CONTEXT ONLY) MEMORY OF INTERACTIONS WITH THIS PLAYER
         -------------
         {t.npc_memory}
+        """
 
-        RECENT EVENT
-        -------------
-        - Player,{t.player_name}, has just agreed to play the game by stating: {t.player_text}
-    
+        print(f"\nT.GAME STARTED: {t.game_started}\n")
+
+        recent_event = ""
+        if not t.game_started:
+            recent_event = f"""
+            RECENT EVENT
+            -------------
+            - Player, {t.player_name}, has just agreed to play the game by stating: {t.player_text}
+            """
+        else :
+            recent_event = f"""
+            RECENT EVENT
+            -------------
+            - Player, {t.player_name}, has correctly identified your previous emotion: {t.emotion_guessed}
+            - You are now experiencing a new emotion which, again, you are unable to name. 
+            """
+
+        first_rule = ""
+        if not t.game_started:
+            first_rule = """- FIRST, thank the player for agreeing to help
+            (1 short clause or sentence only)."""
+        else: 
+            first_rule = """
+            - FIRST, thank the player for helping you identify the last emotion
+            (1 short clause or sentence only).
+            """
+
+        prompt += f"""
+
+        {recent_event}
+
         RULES
         -------------
 
-        - FIRST, thank the player for agreeing to help
-        (1 short clause or sentence only).
+        {first_rule}
         - THEN transition into describing your current emotion.
 
         - The FIRST sentence about your emotion must explicitly connect the present feeling
@@ -115,6 +142,7 @@ def build_agreed_prompt(t : EmotionGameTurn) -> str:
         - No exposition dumps
         - Never state AI, prompts
         """
+
         return prompt
 
     finally:

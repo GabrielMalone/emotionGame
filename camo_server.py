@@ -10,6 +10,7 @@ from sockets import socketio, init_socket_events
 from llm_client import client
 from emotion_game.npc_introduce import npc_introduce, agree_check, player_disagreed
 from emotion_game.npc_describe_emotion import npc_describe_emotion
+from emotion_game.player_guess import player_guess
 from turnContext import EmotionGameTurn
 
 #------------------------------------------------------------------
@@ -23,7 +24,7 @@ CORS(camo)                      # allow anything to access this API
 init_socket_events(camo)
 
 #------------------------------------------------------------------
-# INTRO for emotions game
+# ROUTES FOR EMOTIONS GAME
 #------------------------------------------------------------------
 @camo.route("/npc_introduce", methods=["POST"])  
 def introduce_npc():
@@ -37,6 +38,10 @@ def player_agreed_check():
 def player_not_agreed():
     return player_disagreed()
 #------------------------------------------------------------------
+@camo.route("/player_guess", methods=["POST"])
+def pl_guess():
+    return ("", 200) if player_guess() else ("", 400)
+#------------------------------------------------------------------
 @camo.route("/assign_next_emotion", methods=["POST"])
 def assign_n_e():
 
@@ -46,7 +51,8 @@ def assign_n_e():
         idNPC=data["idNPC"],
         idUser=data["idUser"],
         current_scene=data["curScene"],
-        player_name=data["pName"]
+        player_name=data["pName"],
+        game_started=data["game_started"]
     )
 
     emotion = assign_next_emotion(turn)

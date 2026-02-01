@@ -1,4 +1,4 @@
-from emotion_game.build_agreed_prompt import build_agreed_prompt
+from emotion_game.build_describe_emotion_prompt import build_describe_emotion_prompt
 from phase_2_queries import update_NPC_user_memory_query
 from streamNPCresponse.streamTextResponse import streamResponse
 from flask import jsonify
@@ -9,8 +9,9 @@ from turnContext import EmotionGameTurn
 
 def npc_describe_emotion(turn: EmotionGameTurn) -> str:
     try:
-        # intro prompt for emotional eq game
-        turn.prompt = build_agreed_prompt(turn)
+        print(f"game has started == {turn.game_started}")
+        # prompt for describing current emotion
+        turn.prompt = build_describe_emotion_prompt(turn)
         # stream response from openAI
         turn.last_npc_text = streamResponse(turn,client=client)
         # debug
@@ -23,13 +24,8 @@ def npc_describe_emotion(turn: EmotionGameTurn) -> str:
             "npc_responded",
             {"text": turn.last_npc_text},
             room=f"user:{turn.idUser}")
-        
-        print("\n LAST NPC RESPONSE", turn.last_npc_text)
 
-        return jsonify({
-            "success": True,
-            "npc_text": turn.last_npc_text
-        }), 200
+        return jsonify({"success": True}), 200
             
     except Exception as e:
         import traceback

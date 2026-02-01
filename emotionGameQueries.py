@@ -17,7 +17,7 @@ def connect()->object:
         database=os.getenv('DB_NAME'),
         host=os.getenv('DB_HOST', 'localhost') )
 #------------------------------------------------------------------
-def mark_emotion_guessed_correct(idUser, idNPC, idEmotion):
+def mark_emotion_guessed_correct(t : EmotionGameTurn):
     db = connect()
     cursor = db.cursor()
     cursor.execute("""
@@ -27,7 +27,7 @@ def mark_emotion_guessed_correct(idUser, idNPC, idEmotion):
         WHERE idUser = %s
           AND idNPC = %s
           AND idEmotion = %s;
-    """, (idUser, idNPC, idEmotion))
+    """, (t.idUser, t.idNPC, t.emotion_guessed_id))
     db.commit()
     cursor.close()
     db.close()

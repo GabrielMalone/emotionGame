@@ -108,6 +108,7 @@ def classify_emotion_guess(t: EmotionGameTurn, client):
         "- sad\n"
         "- angry\n"
         "- afraid\n"
+        "- surpised\n"
         "- calm\n"
         "- excited\n"
         "- disgusted\n\n"
@@ -129,8 +130,6 @@ def classify_emotion_guess(t: EmotionGameTurn, client):
         ],
         temperature=0.0,
     )
-
-    print("\nCHILD GUESSED:", resp.choices[0].message.content)
 
     result = parse_llm_json(resp.choices[0].message.content)
     return result.get("guessed_emotion")

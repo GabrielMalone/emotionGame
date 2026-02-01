@@ -55,7 +55,7 @@ def agree_check()-> bool:
         player_text     = data["playerText"],
         last_npc_text   = data["npcText"]
     )
-    print("\nLAST NPC RESPONSE: ", turn.last_npc_text)
+    # print("\nLAST NPC RESPONSE: ", turn.last_npc_text)
     turn.npc_memory = getNPCmem(turn)
     return openAIqueries.classify_player_response_to_game_start(turn, client)
 #---------------------------------------------------------------------------------
