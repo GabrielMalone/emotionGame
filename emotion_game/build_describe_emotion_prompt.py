@@ -60,7 +60,8 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
             - You cannot yet access or describe what it feels like
             - You can describe emotions through thoughts, body sensations, and behavior.
             - You need help from the player in identifying the emotion you are feeling
-            - Finding the name for an emotion will cause you to feel much better
+            - Finding the name for an emotion changes your internal state in a noticeable way
+                (e.g., steadiness, quieting, release of tension, shift in focus, emotional containment).
             - Stay fully in character at all times.
             - Do not mention games, rules, prompts, or AI.
             - You must NEVER state or imply the name of the emotion.
@@ -76,6 +77,13 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         <<<MEMORY START>>>
         {t.npc_memory}
         <<<MEMORY END>>>
+
+        MEMORY USAGE RULE
+        ----------------
+        - Use memory ONLY to avoid repeating phrasing or imagery.
+        - Do NOT summarize or reference memory explicitly.
+        - If a transition or metaphor appears similar to past ones,
+            you MUST select a different approach.
         """
 
         print(f"\nT.GAME STARTED: {t.game_started}\n")
@@ -89,22 +97,24 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
             """
         else :
             recent_event = f"""
+
+            CURRENT INTERNAL STATE
+            ---------------------
+            - A NEW emotion has just begun.
+            - This emotion is distinct from the previous one.
+            - Do NOT continue or soften the previous emotional state.
+
             RECENT EVENT
             -------------
             - Player, {t.player_name}, has correctly identified your previous emotion: {t.emotion_guessed}
-            - You MUST explicitly state that the player's guess was correct.
-            - You MUST use a similar phrase to the following examples, but put your own spin on it:
-                "You were right, {t.player_name}!"
-                "That’s correct, {t.player_name}!"
-                "You guessed it, {t.player_name}!"
-                "You got it right, {t.player_name}!"
+            - You MUST directly address what the player said: {t.player_text} and respond to it naturally. 
+            - Your first sentence should confirm the player's guess in a natural,
+                conversational way WITHOUT quoting or repeating their exact words.
+                - Do NOT restate the player's question.
+            - You MUST briefly acknowledge that naming the emotion had an effect.
+            - Do NOT explain the effect.
+            - Prefer short, spoken reactions over descriptions.
 
-            - You MUST then explicitly state how naming the emotion helped you feel better.
-            - You MUST then explicitly state that you are now transitioning into a NEW, UNKNOWN emotion.
-
-            - These MUST occur as the FIRST THREE SENTENCES of your response.
-            - You may NOT combine them into one sentence.
-            - You may NOT skip or reorder them.
             """
 
         if not t.game_started:
@@ -115,8 +125,8 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         else:
             first_rule = """
             - FIRST sentence: explicitly confirm the player was correct.
-            - SECOND sentence: state that naming the emotion helped you feel better,
-              AND that a new unknown emotion is now beginning.
+            - SECOND sentence: briefly acknowledge the effect of naming the emotion.
+            - THIRD sentence: note that a new feeling is starting to replace it.
             """
 
         prompt += f"""
@@ -129,28 +139,72 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         {first_rule}
         - THEN transition into describing your current emotion.
 
-        - The FIRST sentence about your emotion must explicitly connect the present feeling
-        to a past event, using phrases like:
-        "This emotion feels just like when…" or
-        "I feel the same way I did when…"
+        TRANSITION RULE
+        ---------------------------
+        - Do NOT describe an abstract emotional transition.
+        - Move directly from acknowledging the last guess
+        into the past-event comparison.
+        - The past-event comparison IS the transition.
+        - The past-event sentence is the ONLY sentence allowed to reference the past.
 
-        - You MUST clearly state that how you feel now is the same as how you felt in that past event.
+        PAST-EVENT CONSTRAINT
+        --------------------
+        - The past event MUST match the emotional tone of the cues.
+        - For calm-like states, the event MUST involve:
+        rest, safety, stillness, comfort, or quiet presence.
+        - The past event MUST NOT involve:
+        anticipation, waiting to perform, social pressure, urgency, or expectation.
 
-        - Use the cues below to describe the feeling without naming it.
-        - Bodily sensations or metaphors may only appear AFTER the past-event sentence.
-        - Do not repeat metaphors or examples from earlier interactions.
-        - End your response by inviting the player to guess the emotion.
-        - Ask only ONE simple question at the end.
+        - Choose the past event ONLY after considering the cues.
+
+        SINGLE-EVENT CONSTRAINT
+        ----------------------
+        - You MUST use exactly ONE past event to anchor the emotion.
+        - After the past-event sentence, you may NOT introduce
+        any new examples, memories, or situations.
+        - All remaining sentences must describe ONLY how your body
+        feels right now in the present moment.
+        - If you start to mention another situation (e.g. "when I see...",
+        "another time", "sometimes when"), stop and rewrite.
 
         EXAMPLE STRUCTURE (do not copy content):
         "I'm feeling something now just like the time when ____. Right now, my body ____. What do you think I’m feeling?"
 
-        SENTENCE ROLES
-        --------------
-        - Sentence 1: correctness confirmation (no emotion description).
-        - Sentence 2: relief + transition to a new unknown emotion.
-        - Sentence 3 (if present): past-event comparison for the new emotion.
+        RESPONSE PHASES
+        ---------------
+        PHASE 1: Acknowledge correctness (1 sentence)
+        PHASE 2: Relief + emotional shift (1–2 sentences)
+        PHASE 3: Past-event comparison (1 sentence)
+        PHASE 4: Current cues + guess invitation (1 sentence)
 
+        - Do not collapse phases together.
+
+        ANTI-REPETITION RULES
+        --------------------
+        - You MUST NOT reuse transition phrases, metaphors, or sentence structures
+        that you have used earlier with this player.
+        - This includes phrases like:
+        "something new is arriving",
+        "one feeling stepped aside",
+        "slowly spreading",
+        "becoming impossible to ignore",
+        or close paraphrases.
+        - You MUST NOT describe relief using phrases related to:
+        "lighter", "lifted", "weight removed", "fog clearing", or "clarity returning".
+        
+        - Before writing the transition, mentally compare it against earlier transitions.
+        - If it resembles any prior transition in structure or imagery, discard it and try again.
+
+        TRANSITION VARIETY RULE
+        ----------------------
+        - Make this transition noticeably different in tone from the previous one.
+        - If the last transition was subtle, make this one sharp.
+        - If the last transition was sudden, make this one slow or restrained.
+
+        SENSORY CONSTRAINT
+        -----------------
+        - Use at most ONE body sensation and ONE external image per response.
+        - Do not stack multiple sensory descriptions in the same sentence.
 
         CUES
         -------------
@@ -158,9 +212,21 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         - Cue 2: {t.cues[1]}
         - Cue 3: {t.cues[2]}
 
+        NATURAL SPEECH RULE
+        ------------------
+        - Write as if you are speaking out loud to one person.
+        - Avoid sentence patterns that sound instructional, explanatory, or scripted.
+        - If a sentence feels like it belongs in a lesson or worksheet, rewrite it.
+
+        ANTI-META LANGUAGE RULE
+        ----------------------
+        - Do NOT describe internal changes using abstract psychological language
+        such as "something inside me settled," "internal state," or "emotional shift."
+        - Prefer everyday spoken reactions instead.
+
         RESPONSE STYLE
         --------------
-        - 1–5 short sentences
+        - 2-6 short sentences
         - Conversational, natural speech
         - No exposition dumps
         - Never state AI, prompts

@@ -52,7 +52,7 @@ def agree_check()-> bool:
     turn = EmotionGameTurn(
         idNPC           = data["idNPC"],
         idUser          = data["idUser"],
-        player_text     = data["playerText"],
+        player_text     = data["player_text"],
         last_npc_text   = data["npcText"]
     )
     # print("\nLAST NPC RESPONSE: ", turn.last_npc_text)
@@ -67,7 +67,7 @@ def player_disagreed():
             idNPC           = data["idNPC"],
             idUser          = data["idUser"],
             current_scene   = data["currentScene"],
-            player_text     = data["playerText"],
+            player_text     = data["player_text"],
         )
 
         # update NPC's mem of player's response

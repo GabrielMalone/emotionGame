@@ -44,11 +44,11 @@ def player_not_agreed():
 @camo.route("/player_guess", methods=["POST"])
 def pl_guess():
     res = player_guess()
-    if res == "End":
+    if res["status"] == "End":
         return jsonify({"res" : "End"}), 200
-    if res == "True":
-        return jsonify({"res" : "True"}), 200
-    if res == "False":
+    if res["status"] == "True":
+        return jsonify({"res" : "True", "turnData" : res["turnData"]}), 200
+    if res["status"] == "False":
         return jsonify({"res" : "False"}), 200
 
 #------------------------------------------------------------------
@@ -62,7 +62,9 @@ def assign_n_e():
         idUser=data["idUser"],
         current_scene=data["curScene"],
         player_name=data["pName"],
-        game_started=data["game_started"]
+        game_started=data["game_started"],
+        npc_memory=data["npc_mem"],
+        player_text=data["player_text"]
     )
 
     emotion = assign_next_emotion(turn)

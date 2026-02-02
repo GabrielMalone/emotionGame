@@ -8,6 +8,8 @@ from llm_client import client
 from sockets import socketio
 from turnContext import EmotionGameTurn
 from emotionGameQueries import mark_emotion_guessed_correct, get_active_emotion
+from emotion_game.build_describe_emotion_prompt import build_describe_emotion_prompt
+from emotion_game.get_NPC_mem import getNPCmem
 
 
 def player_guess() -> str:
@@ -23,9 +25,11 @@ def player_guess() -> str:
         game_over     = data["game_over"]
     )
 
+    
+
     # categorize player's emotion guess
     turn.emotion_guessed = openAIqueries.classify_emotion_guess(turn, client)
-    print("\nPLAYER GUESSED: ", turn.emotion_guessed)
+    print(f"\nPLAYER GUESSED: {turn.emotion_guessed} by saying {turn.player_text}")
     # if player did something other than make a guess
     if (turn.emotion_guessed is None):
         pass
@@ -44,7 +48,7 @@ def player_guess() -> str:
             "npc_responded",
             {"text": turn.last_npc_text},
             room=f"user:{turn.idUser}")
-        return "End"
+        return {"status" : "End"}
     
     # otherwise check to see if the emotion guessed is the correct one
     data = get_active_emotion(turn)
@@ -59,17 +63,14 @@ def player_guess() -> str:
         turn.emotion_guessed_id = npc_emotion_guessed_id
         mark_emotion_guessed_correct(turn)
         # update npc memory about this event
-        turn.npc_memory = f"{turn.player_name} correctly identified your emotion {turn.emotion_guessed}"
+        turn.npc_memory = f"{turn.player_name} said: {turn.player_text}. As a result {turn.player_name} correctly identified your emotion {turn.emotion_guessed}"
         update_NPC_user_memory_query(turn)
-        socketio.emit(
-            "npc_responded",
-            {"text": turn.last_npc_text},
-            room=f"user:{turn.idUser}")
-        return "True"
+        turn.npc_memory = getNPCmem(turn)
+        return {"status" : "True", "turnData" : turn}
 
     else: 
         print(f"INCORRECT! {turn.emotion_guessed} != {npc_emotion}  ")
-        turn.npc_memory = f"{turn.player_name} incorrectly identified your emotion {turn.emotion_guessed}"
+        turn.npc_memory = f"{turn.player_name} said: {turn.player_text}. As a result {turn.player_name} incorrectly identified your emotion {turn.emotion_guessed}"
         update_NPC_user_memory_query(turn)
         turn.cues = openAIqueries.get_cues_for_emotion(npc_emotion, client=client)
         turn.prompt = build_incorrect_prompt(turn)
@@ -80,5 +81,5 @@ def player_guess() -> str:
             "npc_responded",
             {"text": turn.last_npc_text},
             room=f"user:{turn.idUser}")
-        return "False"
+        return {"status" : "False"}
     

@@ -600,7 +600,12 @@ INSERT INTO npc_persona (
   0.9,
   0.8,
 
-  'Uses simple sentences, concrete metaphors, real-world examples, and sensory language; asks reflective questions; Only uses sensory language when describing an emotion she is feeling or describing.',
+  'Speaks in natural, spoken sentences with a warm, steady rhythm. 
+  Uses simple language without sounding instructional. 
+  Prefers everyday phrasing over metaphors unless describing her own feelings. 
+  When she does use metaphors, they come from ordinary life and feel personal, not illustrative. 
+  Often blends observation and feeling into a single sentence. 
+  Avoids overexplaining, avoids stacked descriptions, and sounds like someone talking, not teaching.',
 
   'care-based, relational'
 );

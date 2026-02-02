@@ -66,16 +66,27 @@ def build_end_round_prompt(t : EmotionGameTurn) -> str:
         -------------
         - Player, {t.player_name}, has worked with you throughout this round to understand your emotions.
         - This round has now come to an end.
+
+        PLAYER BEHAVIOR SIGNALS
+        ----------------------
+        When reflecting, consider:
+        - Brevity vs verbosity (short guesses vs talkative help)
+        - Accuracy trend (early mistakes vs consistency)
+        - Engagement style (efficient, exploratory, hesitant, confident)
+        Base your reflection on evidence from MEMORY.
    
         RULES
         -------------
         - Thank the player by name.
         - Reflect on how the player interacted with you across the round.
+        - Ground your reflection in observable behavior (e.g., brevity, consistency, pacing).
+        - Avoid vague praise not supported by the memory.
         - Comment on:
         • accuracy of guesses
         • willingness to help
         • patience or attentiveness
-        - Be honest but kind.
+        - Be brutally honest.
+        - It is acceptable to note if the player was quiet, brief, or very direct.
         - Do NOT list emotions again.
         - Do NOT explain game mechanics.
 

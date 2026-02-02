@@ -2,6 +2,7 @@ import requests
 from extensions import CamoClientExtension
 from streamingMP3Player import StreamingMP3Player
 import requests
+from turnContext import EmotionGameTurn
 
 # -----------------------------------------------------------------------------------
 # config
@@ -16,7 +17,8 @@ currentScene = """
     - You cannot yet access or describe what it feels like
     - You can describe emotions through thoughts, body sensations, and behavior.
     - You need help from the player in identifying the emotion you are feeling
-    - Finding the name for an emotion will cause you to feel much better
+    - Finding the name for an emotion changes your internal state in a noticeable way
+        (e.g., steadiness, quieting, release of tension, shift in focus, emotional containment).
     - Stay fully in character at all times.
     - Do not mention games, rules, prompts, or AI.
     - You must NEVER state or imply the name of the emotion.
@@ -27,9 +29,11 @@ currentScene = """
         "This feeling…", "What I’m feeling now…", or
         "The way my body feels right now…"
 """
-playerName = "Gabriel"
 voiceId = "SOYHLrjzK2X1ezoPC6cr"
 SERVER = "http://localhost:5001"
+
+
+
 # -----------------------------------------------------------------------------------
 # socket extension
 # -----------------------------------------------------------------------------------
@@ -42,31 +46,39 @@ ext.connect()
 # -----------------------------------------------------------------------------------
 def game_start()->bool:
 
+    turn = EmotionGameTurn(
+        idNPC=1,
+        idUser=1,
+        current_scene=currentScene,
+        voiceId=voiceId
+    )
+
     gameStarted = False
+
     while True:
         # ---------------------------------------------------------------------------
         #   introduction branch
         # ---------------------------------------------------------------------------
         if not gameStarted:
-            playerName = input("\n Enter your name: ").strip()
+            turn.player_name = input("\n Enter your name: ").strip()
 
             requests.post(f"{SERVER}/npc_introduce", json={
-                "idUser"        : idUser,
-                "idNPC"         : idNPC,
-                "currentScene"  : currentScene,
-                "playerName"    : playerName,
-                "idVoice"       : voiceId,
+                "idUser"        : turn.idUser,
+                "idNPC"         : turn.idNPC,
+                "currentScene"  : turn.current_scene,
+                "playerName"    : turn.player_name,
+                "idVoice"       : turn.voiceId,
             })
 
             # Wait until NPC finishes talking before allowing input
             ext.wait_for_npc_response(timeout=30)
 
-            player_text = input("\n Respond: ").strip()
+            turn.player_text = input("\n Respond: ").strip()
 
             agreed = requests.post(f"{SERVER}/player_agreed_check", json={
-                "idUser"        : idUser,
-                "idNPC"         : idNPC,
-                "playerText"    : player_text,
+                "idUser"        : turn.idUser,
+                "idNPC"         : turn.idNPC,
+                "player_text"   : turn.player_text,
                 "npcText"       : ext.last_npc_response
             })
         # ---------------------------------------------------------------------------
@@ -74,15 +86,21 @@ def game_start()->bool:
         # ---------------------------------------------------------------------------
         if (agreed): 
 
+            guessingStarted = False
+            gameStarted = True
+
             while True:
 
                 # start guessing game 
                 r = requests.post(f"{SERVER}/assign_next_emotion", json={
-                        "idUser"        : idUser,
-                        "idNPC"         : idNPC,
-                        "pName"         : playerName,
-                        "curScene"      : currentScene,
-                        "game_started"  : False
+                        "idUser"        : turn.idUser,
+                        "idNPC"         : turn.idNPC,
+                        "pName"         : turn.player_name,
+                        "curScene"      : turn.current_scene,
+                        "npc_mem"       : turn.npc_memory,
+                        "game_started"  : guessingStarted,
+                        "player_text"   : turn.player_text,
+
                     })
                 
                 # check if game over
@@ -92,11 +110,11 @@ def game_start()->bool:
                 if game_status == "game_over":
                     print('game over')
                     resp = requests.post(f"{SERVER}/player_guess", json={
-                        "idUser"        : idUser,
-                        "idNPC"         : idNPC,
-                        "playerName"    : playerName,
-                        "currentScene"  : currentScene,
-                        "player_text"   : player_text,
+                        "idUser"        : turn.idUser,
+                        "idNPC"         : turn.idNPC,
+                        "playerName"    : turn.player_name,
+                        "currentScene"  : turn.current_scene,
+                        "player_text"   : turn.player_text,
                         "npcText"       : ext.last_npc_response,
                         "game_started"  : False,
                         "game_over"     : True
@@ -105,16 +123,16 @@ def game_start()->bool:
                     return    
                 
                 # get player's guess for NPC's current emotion
-                player_text = input("\n\n Respond: ").strip()
-                gameStarted = True
+                turn.player_text = input("\n\n Respond: ").strip()
+                guessingStarted = True
                 ext.npc_response_ready.clear()
                 # check the guess
                 resp = requests.post(f"{SERVER}/player_guess", json={
-                        "idUser"        : idUser,
-                        "idNPC"         : idNPC,
-                        "playerName"    : playerName,
-                        "currentScene"  : currentScene,
-                        "player_text"   : player_text,
+                        "idUser"        : turn.idUser,
+                        "idNPC"         : turn.idNPC,
+                        "playerName"    : turn.player_name,
+                        "currentScene"  : turn.current_scene,
+                        "player_text"   : turn.player_text,
                         "npcText"       : ext.last_npc_response,
                         "game_started"  : gameStarted,
                         "game_over"     : False
@@ -126,11 +144,10 @@ def game_start()->bool:
                 # -------------------------------------------------------------------
                 if result == "True":
                     print("\n\nCORCORRECT GUESS!\n\n")
-                    # updated the npc_describe_emotion prompt to be more descriptive 
-                    # about why an answer was correct and how now the npc feels better
-                    # that they can put a name to this emotion
-                    # then updated backend score counting
-                    # track score in turnContext too ?
+                    turnData= data.get("turnData")
+                    turn.npc_memory = turnData["npc_memory"]
+                    turn.player_text = turnData["player_text"]                  
+                    
                 if result == "End":
                     print('game over')
                     return
@@ -140,13 +157,13 @@ def game_start()->bool:
                 while result == "False":
                     print("\n\nINCORRECT GUESS!\n\n")
                     # get player's guess for NPC's current emotion
-                    player_text = input("\n Respond: ").strip()
+                    turn.player_text = input("\n Respond: ").strip()
                     resp = requests.post(f"{SERVER}/player_guess", json={
-                        "idUser"        : idUser,
-                        "idNPC"         : idNPC,
-                        "playerName"    : playerName,
-                        "currentScene"  : currentScene,
-                        "player_text"   : player_text,
+                        "idUser"        : turn.idUser,
+                        "idNPC"         : turn.idNPC,
+                        "playerName"    : turn.player_name,
+                        "currentScene"  : turn.current_scene,
+                        "player_text"   : turn.player_text,
                         "npcText"       : ext.last_npc_response,
                         "game_started"  : gameStarted,
                         "game_over"     : False
@@ -164,23 +181,23 @@ def game_start()->bool:
                 # returns npcs output in n
                
                 requests.post(f"{SERVER}/player_not_agreed", json={
-                    "idUser"        : idUser,
-                    "idNPC"         : idNPC,
-                    "playerName"    : playerName,
-                    "currentScene"  : currentScene,
-                    "playerText"    : player_text
+                    "idUser"        : turn.idUser,
+                    "idNPC"         : turn.idNPC,
+                    "playerName"    : turn.player_name,
+                    "currentScene"  : turn.current_scene,
+                    "player_text"   : turn.player_text
                 })  
                 
                 # get player's response to this NPC output
-                player_text = input("\n Respond: ").strip()
+                turn.player_text = input("\n Respond: ").strip()
                 # Wait for semantic completion
                 ext.wait_for_npc_response(timeout=30)
                 
                 # check again
                 res = requests.post(f"{SERVER}/player_agreed_check", json={
-                    "idUser"        : idUser,
-                    "idNPC"         : idNPC,
-                    "playerText"    : player_text,
+                    "idUser"        : turn.idUser,
+                    "idNPC"         : turn.idNPC,
+                    "player_text"    : turn.player_text,
                     "npcText"       : ext.last_npc_response
                 })
                 data = res.json()  
