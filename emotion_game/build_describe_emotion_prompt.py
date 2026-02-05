@@ -16,6 +16,8 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
     db = connect()
     cursor = db.cursor(dictionary=True)
 
+    print("\nPROMPT DEBUG. game started ? == \n", t.game_started)
+
     try:
         # --------------------------------------------------
         # NPC core
@@ -90,85 +92,37 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
 
         recent_event = ""
         if not t.game_started:
-            recent_event = f"""
-            RECENT EVENT
-            -------------
-            - Player, {t.player_name}, has just agreed to play the game by stating: {t.player_text}
-            """
-        else :
-            recent_event = f"""
+            prompt += f"""
 
-            CURRENT INTERNAL STATE
-            ---------------------
-            - A NEW emotion has just begun.
-            - This emotion is distinct from the previous one.
-            - Do NOT continue or soften the previous emotional state.
+        INTRO TURN ONLY RULES
+        --------------------
+        - The player has agreed to help, but has NOT guessed an emotion yet.
+        - You MUST NOT acknowledge, deny, or evaluate a guess.
+        - You MUST NOT say "nope", "not quite", "close", or similar phrases.
 
-            RECENT EVENT
-            -------------
-            - Player, {t.player_name}, has correctly identified your previous emotion: {t.emotion_guessed}
-            - You MUST directly address what the player said: {t.player_text} and respond to it naturally. 
-            - Your first sentence should confirm the player's guess in a natural,
-                conversational way WITHOUT quoting or repeating their exact words.
-                - Do NOT restate the player's question.
-            - You MUST briefly acknowledge that naming the emotion had an effect.
-            - Do NOT explain the effect.
-            - Prefer short, spoken reactions over descriptions.
+        STRUCTURE
+        ---------
+        1. Thank the player for agreeing (1 short sentence).
+        2. Describe ONE past event matching the cues (1 sentence).
+        3. Describe ONE present body sensation (1 sentence).
+        4. Ask the player to guess what you’re feeling (1 sentence).
 
-            """
-
-        if not t.game_started:
-            first_rule = """
-            - FIRST, thank the player for agreeing to help.
-            (1 short sentence only.)
-            """
+        - 3–5 short sentences total.
+        """
         else:
-            first_rule = """
-            - FIRST sentence: explicitly confirm the player was correct.
-            - SECOND sentence: briefly acknowledge the effect of naming the emotion.
-            - THIRD sentence: note that a new feeling is starting to replace it.
-            """
+            prompt += f"""
 
-        prompt += f"""
-
-        {recent_event}
-
-        RULES
-        -------------
-
-        {first_rule}
-        - THEN transition into describing your current emotion.
+        POST-GUESS TURN RULES
+        --------------------
+        - FIRST sentence: confirm the player was correct.
+        - SECOND sentence: briefly acknowledge the effect of naming the emotion.
+        - THIRD sentence: note that a new feeling is starting.
 
         TRANSITION RULE
-        ---------------------------
-        - Do NOT describe an abstract emotional transition.
+        ---------------
         - Move directly from acknowledging the last guess
         into the past-event comparison.
-        - The past-event comparison IS the transition.
-        - The past-event sentence is the ONLY sentence allowed to reference the past.
-
-        PAST-EVENT CONSTRAINT
-        --------------------
-        - The past event MUST match the emotional tone of the cues.
-        - For calm-like states, the event MUST involve:
-        rest, safety, stillness, comfort, or quiet presence.
-        - The past event MUST NOT involve:
-        anticipation, waiting to perform, social pressure, urgency, or expectation.
-
-        - Choose the past event ONLY after considering the cues.
-
-        SINGLE-EVENT CONSTRAINT
-        ----------------------
-        - You MUST use exactly ONE past event to anchor the emotion.
-        - After the past-event sentence, you may NOT introduce
-        any new examples, memories, or situations.
-        - All remaining sentences must describe ONLY how your body
-        feels right now in the present moment.
-        - If you start to mention another situation (e.g. "when I see...",
-        "another time", "sometimes when"), stop and rewrite.
-
-        EXAMPLE STRUCTURE (do not copy content):
-        "I'm feeling something now just like the time when ____. Right now, my body ____. What do you think I’m feeling?"
+        - The past-event sentence IS the transition.
 
         RESPONSE PHASES
         ---------------
@@ -206,12 +160,6 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         - Use at most ONE body sensation and ONE external image per response.
         - Do not stack multiple sensory descriptions in the same sentence.
 
-        CUES
-        -------------
-        - Cue 1: {t.cues[0]}
-        - Cue 2: {t.cues[1]}
-        - Cue 3: {t.cues[2]}
-
         NATURAL SPEECH RULE
         ------------------
         - Write as if you are speaking out loud to one person.
@@ -230,6 +178,15 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         - Conversational, natural speech
         - No exposition dumps
         - Never state AI, prompts
+        """
+        
+        prompt +=  f"""
+        CUES
+        -------------
+        - Cue 1: {t.cues[0]}
+        - Cue 2: {t.cues[1]}
+        - Cue 3: {t.cues[2]}
+
         """
 
         return prompt

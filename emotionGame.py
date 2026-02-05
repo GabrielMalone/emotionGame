@@ -31,9 +31,6 @@ currentScene = """
 """
 voiceId = "SOYHLrjzK2X1ezoPC6cr"
 SERVER = "http://localhost:5001"
-
-
-
 # -----------------------------------------------------------------------------------
 # socket extension
 # -----------------------------------------------------------------------------------
@@ -147,7 +144,25 @@ def game_start()->bool:
                     turnData= data.get("turnData")
                     turn.npc_memory = turnData["npc_memory"]
                     turn.player_text = turnData["player_text"]                  
-                    
+                # -------------------------------------------------------------------
+                # other statement made branch
+                # -------------------------------------------------------------------               
+                while result == "Other":
+                    print("\nother statement made\n")
+                    turn.player_text = input("\n Respond: ").strip()
+                    resp = requests.post(f"{SERVER}/player_guess", json={
+                        "idUser"        : turn.idUser,
+                        "idNPC"         : turn.idNPC,
+                        "playerName"    : turn.player_name,
+                        "currentScene"  : turn.current_scene,
+                        "player_text"   : turn.player_text,
+                        "npcText"       : ext.last_npc_response,
+                        "game_started"  : gameStarted,
+                        "game_over"     : False
+                    })
+                    data = resp.json()
+                    result = data.get("res")
+
                 if result == "End":
                     print('game over')
                     return

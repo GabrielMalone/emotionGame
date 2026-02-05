@@ -7,7 +7,7 @@ from turnContext import EmotionGameTurn
 def getResponseStream(t: EmotionGameTurn, client):
     try:
         response = client.chat.completions.create(
-            model="gpt-4.1",
+            model="gpt-5.2",
             temperature=0.85,
             top_p=0.9,
             stream=True, 
@@ -50,7 +50,6 @@ def classify_player_response_to_game_start(t : EmotionGameTurn, client):
     """
     Returns True if the player agrees to help the NPC identify their emotions.
     """
-
     system = """
     You classify player responses in a children's emotion-learning game.
 
@@ -67,7 +66,9 @@ def classify_player_response_to_game_start(t : EmotionGameTurn, client):
     - TRUE only if the player agrees to participate in the task of identifying emotions.
     - Agreement may be explicit ("I can help", "let's do it")
     or implicit ("okay", "sure") IF the NPC just asked for help with emotions.
-    - Positive, supportive, or conversational replies alone are NOT agreement.
+    - Replies that express willingness, openness, or interest
+    (e.g. "sure", "sounds interesting", "okay", "I'm curious")
+    COUNT as agreement IF the NPC just asked for help identifying emotions.
     - If the NPC's last statement was NOT a request to help with emotions,
     short affirmations do NOT count as agreement.
     - If unsure, return false.
@@ -85,7 +86,7 @@ def classify_player_response_to_game_start(t : EmotionGameTurn, client):
     """
 
     resp = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-5.2",
         messages=[
             {"role": "system", "content": system},
             {"role": "user", "content": user},
@@ -138,14 +139,11 @@ def classify_emotion_guess(t: EmotionGameTurn, client):
 # ------------------------------------------------------------
 def generate_emotion_cues(emotion: str, client) -> list[str] | None:
     system = (
-        "You generate short, child-friendly descriptions of emotions.\n"
+        "You generate short,descriptions of emotions.\n"
         "Rules:\n"
-        "- Audience is a child (ages 6–12)\n"
         "- Use concrete body sensations or everyday situations\n"
         "- No abstract psychology words\n"
-        "- No adult topics, no threats, no violence\n"
         "- Do NOT name the emotion\n"
-        "- Keep language simple and literal\n"
         "- Return ONLY valid JSON\n"
     )
 
@@ -165,7 +163,7 @@ def generate_emotion_cues(emotion: str, client) -> list[str] | None:
 
     try:
         resp = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5.2",
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},

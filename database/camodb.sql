@@ -613,7 +613,7 @@ INSERT INTO npc_persona (
 INSERT INTO background (idNPC, BGcontent)
 VALUES (
   1,
-  'Emory believes that emotions are easier to understand when they are explored through play, imagination, and gentle curiosity. She often uses games, metaphors, and collaborative guessing to help children notice body sensations, thoughts, and situations connected to feelings.'
+  'Emory believes that emotions are easier to understand when they are explored through play, imagination, and gentle curiosity. She often uses games, metaphors, and collaborative guessing to help her patients notice body sensations, thoughts, and situations connected to feelings.'
 );
 
 INSERT INTO playerNPCrelationship (

@@ -60,7 +60,8 @@ def build_incorrect_prompt(t : EmotionGameTurn) -> str:
             - You cannot yet access or describe what it feels like
             - You can describe emotions through thoughts, body sensations, and behavior.
             - You need help from the player in identifying the emotion you are feeling
-            - Finding the name for an emotion will cause you to feel much better
+            - Finding the name for an emotion changes your internal state in a noticeable way
+                (e.g., steadiness, quieting, release of tension, shift in focus, emotional containment).
             - Stay fully in character at all times.
             - Do not mention games, rules, prompts, or AI.
             - You must NEVER state or imply the name of the emotion.

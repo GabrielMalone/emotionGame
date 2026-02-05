@@ -50,6 +50,8 @@ def pl_guess():
         return jsonify({"res" : "True", "turnData" : res["turnData"]}), 200
     if res["status"] == "False":
         return jsonify({"res" : "False"}), 200
+    if res["status"] == "Other":
+        return jsonify({"res" : "Other"}), 200
 
 #------------------------------------------------------------------
 @camo.route("/assign_next_emotion", methods=["POST"])
