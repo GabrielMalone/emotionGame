@@ -76,7 +76,8 @@ def game_start()->bool:
                 "idUser"        : turn.idUser,
                 "idNPC"         : turn.idNPC,
                 "player_text"   : turn.player_text,
-                "npcText"       : ext.last_npc_response
+                "npcText"       : ext.last_npc_response,
+                "idVoice"       : turn.voiceId,
             })
         # ---------------------------------------------------------------------------
         # agreed to play branch
@@ -97,6 +98,7 @@ def game_start()->bool:
                         "npc_mem"       : turn.npc_memory,
                         "game_started"  : guessingStarted,
                         "player_text"   : turn.player_text,
+                        "idVoice"       : turn.voiceId,
 
                     })
                 
@@ -113,6 +115,7 @@ def game_start()->bool:
                         "currentScene"  : turn.current_scene,
                         "player_text"   : turn.player_text,
                         "npcText"       : ext.last_npc_response,
+                        "idVoice"       : turn.voiceId,
                         "game_started"  : False,
                         "game_over"     : True
                     })
@@ -132,6 +135,7 @@ def game_start()->bool:
                         "player_text"   : turn.player_text,
                         "npcText"       : ext.last_npc_response,
                         "game_started"  : gameStarted,
+                        "idVoice"       : turn.voiceId,
                         "game_over"     : False
                     })
                 data = resp.json()
@@ -158,6 +162,7 @@ def game_start()->bool:
                         "player_text"   : turn.player_text,
                         "npcText"       : ext.last_npc_response,
                         "game_started"  : gameStarted,
+                        "idVoice"       : turn.voiceId,
                         "game_over"     : False
                     })
                     data = resp.json()
@@ -181,6 +186,7 @@ def game_start()->bool:
                         "player_text"   : turn.player_text,
                         "npcText"       : ext.last_npc_response,
                         "game_started"  : gameStarted,
+                        "idVoice"       : turn.voiceId,
                         "game_over"     : False
                     })
                     data = resp.json()
@@ -200,7 +206,8 @@ def game_start()->bool:
                     "idNPC"         : turn.idNPC,
                     "playerName"    : turn.player_name,
                     "currentScene"  : turn.current_scene,
-                    "player_text"   : turn.player_text
+                    "player_text"   : turn.player_text,
+                    "idVoice"       : turn.voiceId,
                 })  
                 
                 # get player's response to this NPC output
@@ -213,7 +220,8 @@ def game_start()->bool:
                     "idUser"        : turn.idUser,
                     "idNPC"         : turn.idNPC,
                     "player_text"    : turn.player_text,
-                    "npcText"       : ext.last_npc_response
+                    "npcText"       : ext.last_npc_response,
+                    "idVoice"       : turn.voiceId,
                 })
                 data = res.json()  
                 agreed = data.get("agreed")

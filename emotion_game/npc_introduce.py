@@ -1,5 +1,6 @@
 from phase_2_queries import update_NPC_user_memory_query
 from streamNPCresponse.streamTextResponse import streamResponse
+from emotionGameQueries import get_active_emotion
 import openAIqueries
 from emotion_game.build_intro_prompt import build_intro_prompt
 from emotion_game.build_disagree_prompt import build_disagree_prompt
@@ -14,13 +15,14 @@ def npc_introduce():
     try:
 
         data = request.json
-       
-        turn = EmotionGameTurn(
+        turn = EmotionGameTurn (
             player_name   = data["playerName"],
             idNPC         = data["idNPC"],
             idUser        = data["idUser"],
-            current_scene =data["currentScene"]
+            current_scene = data["currentScene"],
+            voiceId       = data["idVoice"]
         )
+        turn.cur_npc_emotion = "worried"
 
         # intro prompt for emotional eq game
         turn.prompt = build_intro_prompt(turn)
@@ -46,6 +48,7 @@ def npc_introduce():
         import traceback
         traceback.print_exc()
         return jsonify({"success": False, "error": str(e)}), 500
+    
 #---------------------------------------------------------------------------------
 def agree_check()-> bool:
     data = request.json
@@ -53,7 +56,8 @@ def agree_check()-> bool:
         idNPC           = data["idNPC"],
         idUser          = data["idUser"],
         player_text     = data["player_text"],
-        last_npc_text   = data["npcText"]
+        last_npc_text   = data["npcText"],
+        voiceId         = data["idVoice"]
     )
     # print("\nLAST NPC RESPONSE: ", turn.last_npc_text)
     turn.npc_memory = getNPCmem(turn)
@@ -68,6 +72,7 @@ def player_disagreed():
             idUser          = data["idUser"],
             current_scene   = data["currentScene"],
             player_text     = data["player_text"],
+            voiceId         = data["idVoice"]
         )
 
         # update NPC's mem of player's response

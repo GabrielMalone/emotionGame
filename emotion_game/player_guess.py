@@ -24,13 +24,14 @@ def player_guess() -> str:
         player_text   = data["player_text"],
         last_npc_text = data["npcText"],
         game_over     = data["game_over"],
-        game_started  = data["game_started"]
+        game_started  = data["game_started"],
+        voiceId       = data["idVoice"]
     )
 
     # categorize player's emotion guess
     turn.emotion_guessed = openAIqueries.classify_emotion_guess(turn, client)
     print(f"\nPLAYER GUESSED: {turn.emotion_guessed} by saying {turn.player_text}")
-
+    
     # this means player has correctly guessed all emotions
     # could either end game at this point
     # or increase to next difficulty level

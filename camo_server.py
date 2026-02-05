@@ -60,13 +60,15 @@ def assign_n_e():
     data = request.json
 
     turn = EmotionGameTurn(
+
         idNPC=data["idNPC"],
         idUser=data["idUser"],
         current_scene=data["curScene"],
         player_name=data["pName"],
         game_started=data["game_started"],
         npc_memory=data["npc_mem"],
-        player_text=data["player_text"]
+        player_text=data["player_text"],
+        voiceId= data["idVoice"]
     )
 
     emotion = assign_next_emotion(turn)

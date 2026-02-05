@@ -1,6 +1,7 @@
 from emotion_game.build_describe_emotion_prompt import build_describe_emotion_prompt
 from phase_2_queries import update_NPC_user_memory_query
 from streamNPCresponse.streamTextResponse import streamResponse
+from emotionGameQueries import get_active_emotion
 from flask import jsonify
 from llm_client import client
 from sockets import socketio
@@ -13,6 +14,8 @@ def npc_describe_emotion(turn: EmotionGameTurn) -> str:
         # prompt for describing current emotion
         turn.prompt = build_describe_emotion_prompt(turn)
         # stream response from openAI
+        turn.cur_npc_emotion = get_active_emotion(turn)["emotion"]
+        print(f"\nCURRENT EMOTION {turn.cur_npc_emotion} \n")
         turn.last_npc_text = streamResponse(turn,client=client)
         # debug
         print("\nNPC DESCRIBE EMOTION RESPONSE: ", turn.last_npc_text)

@@ -8,6 +8,7 @@ class EmotionGameTurn:
     player_name:        str = ""
     current_scene:      str = ""
     voiceId:            str = ""
+    cur_npc_emotion:    str = ""
     emotion_guessed:    str = ""
     emotion_guessed_id: int = 0
     prompt:             str = ""
