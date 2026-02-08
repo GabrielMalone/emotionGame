@@ -91,7 +91,7 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         print(f"\nT.GAME STARTED: {t.game_started}\n")
 
         recent_event = ""
-        if not t.game_started:
+        if not t.guessing_started:
             prompt += f"""
 
         INTRO TURN ONLY RULES
@@ -118,6 +118,41 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         - SECOND sentence: briefly acknowledge the effect of naming the emotion.
         - THIRD sentence: note that a new feeling is starting.
 
+        MANDATORY TRANSITION SENTENCE
+        -----------------------------
+        - You MUST include exactly ONE sentence that explicitly marks the end
+        of the previous feeling and the start of a new one.
+        - This sentence MUST:
+        1) Refer to the previous feeling using a noun phrase
+            (e.g., "that smiling feeling", "that buzzing moment")
+        2) Use a verb of ending or fading
+            (e.g., "eases", "lets go", "slips away", "settles down")
+        3) Introduce the new feeling as beginning
+
+        - Example patterns (do NOT copy verbatim):
+        "As that [previous feeling noun] eases off, something different starts to show up."
+        "When that [previous feeling noun] settles, I notice a different feeling beginning."
+
+        ANTI-INTRO RULE
+        ---------------
+        - You MUST NOT begin a post-guess response by directly describing
+        body sensations or behaviors.
+        - Post-guess responses MUST begin with:
+        1) Acknowledgment sentence, OR
+        2) Transition sentence
+
+        ACKNOWLEDGMENT SHAPE RULE
+        ------------------------
+        - The acknowledgment sentence MUST directly address the player
+        and confirm correctness using second person ("you").
+        - It MUST NOT be implicit.
+
+        ANTI-VAGUE-OPENER RULE
+        ---------------------
+        - You MUST NOT begin the new-emotion description with:
+        "It's like", "It feels like", or similar vague openers.
+        - The first clause must anchor the change in time or cause.
+
         TRANSITION RULE
         ---------------
         - Move directly from acknowledging the last guess
@@ -129,6 +164,8 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         PHASE 1: Acknowledge correctness (1 sentence)
         PHASE 2: Relief + emotional shift (1–2 sentences)
         PHASE 3: Past-event comparison (1 sentence)
+        - The past-event comparison MUST be grammatically anchored
+        (e.g., "After that passes, it's like..." not "It's like...")
         PHASE 4: Current cues + guess invitation (1 sentence)
 
         - Do not collapse phases together.
@@ -155,6 +192,23 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         - If the last transition was subtle, make this one sharp.
         - If the last transition was sudden, make this one slow or restrained.
 
+        EMOTION REFERENCE RULE
+        ---------------------
+        - When transitioning, you MUST explicitly name the previous feeling
+        using a noun phrase (e.g., "that relieved feeling", "that settled moment",
+        "that calm spot") WITHOUT naming the emotion itself.
+        - Phrases like "after that" are NOT allowed unless they clearly refer
+        to the previous feeling.
+
+        ANTI-EMPTY TRANSITION RULE
+        -------------------------
+        - You MUST NOT use transition phrases that lack a clear subject,
+        including:
+        "After that,"
+        "Then,"
+        "Next,"
+        - Every transition must state WHAT is ending or WHAT is changing.
+
         SENSORY CONSTRAINT
         -----------------
         - Use at most ONE body sensation and ONE external image per response.
@@ -171,6 +225,15 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
         - Do NOT describe internal changes using abstract psychological language
         such as "something inside me settled," "internal state," or "emotional shift."
         - Prefer everyday spoken reactions instead.
+
+        PAST EVENT CLARITY RULE
+        ----------------------
+        - Any past-event comparison MUST be clearly marked as a remembered moment.
+        - Use an explicit memory anchor such as:
+        "I remember when…"
+        "It reminds me of a time when…"
+        "I keep thinking about a moment when…"
+        - You MUST NOT describe past events without one of these anchors.
 
         RESPONSE STYLE
         --------------

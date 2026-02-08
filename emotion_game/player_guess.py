@@ -5,7 +5,6 @@ from emotion_game.build_incorrect_prompt import build_incorrect_prompt
 from emotion_game.build_answered_all_correctly_prompt import build_end_round_prompt
 from flask import request
 from llm_client import client
-from sockets import socketio
 from turnContext import EmotionGameTurn
 from emotionGameQueries import mark_emotion_guessed_correct, get_active_emotion
 from emotion_game.build_describe_emotion_prompt import build_describe_emotion_prompt
@@ -13,20 +12,7 @@ from emotion_game.build_did_not_make_guess_prompt import build_no_guess_prompt
 from emotion_game.get_NPC_mem import getNPCmem
 
 
-def player_guess() -> str:
-    
-    data = request.json
-    turn = EmotionGameTurn(
-        player_name   = data["playerName"],
-        idNPC         = data["idNPC"],
-        idUser        = data["idUser"],
-        current_scene = data["currentScene"],
-        player_text   = data["player_text"],
-        last_npc_text = data["npcText"],
-        game_over     = data["game_over"],
-        game_started  = data["game_started"],
-        voiceId       = data["idVoice"]
-    )
+def player_guess(turn: EmotionGameTurn, socketio) -> str:
 
     # categorize player's emotion guess
     turn.emotion_guessed = openAIqueries.classify_emotion_guess(turn, client)
@@ -41,7 +27,7 @@ def player_guess() -> str:
         update_NPC_user_memory_query(turn)
         turn.npc_memory = getNPCmem(turn)
         turn.prompt = build_end_round_prompt(turn)
-        turn.last_npc_text = streamResponse(turn, client)
+        turn.last_npc_text = streamResponse(turn, client, sio=socketio)
         socketio.emit(
             "npc_responded",
             {"text": turn.last_npc_text},
@@ -63,7 +49,7 @@ def player_guess() -> str:
         turn.npc_memory = getNPCmem(turn)
         turn.cues = openAIqueries.get_cues_for_emotion(npc_emotion, client=client)
         turn.prompt = build_no_guess_prompt(turn)
-        turn.last_npc_text = streamResponse(turn, client)
+        turn.last_npc_text = streamResponse(turn, client, sio=socketio)
         socketio.emit(
             "npc_responded",
             {"text": turn.last_npc_text},
@@ -87,7 +73,7 @@ def player_guess() -> str:
         update_NPC_user_memory_query(turn)
         turn.cues = openAIqueries.get_cues_for_emotion(npc_emotion, client=client)
         turn.prompt = build_incorrect_prompt(turn)
-        turn.last_npc_text = streamResponse(turn, client=client)
+        turn.last_npc_text = streamResponse(turn, client=client, sio=socketio)
         # debug
         print("\nNPC RESPONDED TO INCORRECT GUESS:", turn.last_npc_text)
         socketio.emit(

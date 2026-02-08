@@ -15,6 +15,7 @@ class EmotionGameTurn:
     turn_index:         int = 0
     game_started:       bool = False
     game_over:          bool = False
+    guessing_started:   bool = False
     npc_memory:         str = ""
     player_text:        str = ""
     last_npc_text:      str = ""

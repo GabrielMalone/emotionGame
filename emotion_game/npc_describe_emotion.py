@@ -4,26 +4,26 @@ from streamNPCresponse.streamTextResponse import streamResponse
 from emotionGameQueries import get_active_emotion
 from flask import jsonify
 from llm_client import client
-from sockets import socketio
 from turnContext import EmotionGameTurn
 
 
-def npc_describe_emotion(turn: EmotionGameTurn) -> str:
+def npc_describe_emotion(turn: EmotionGameTurn, sio) -> str:
     try:
         print(f"game has started == {turn.game_started}")
+        print(f"guessing has started == {turn.guessing_started}")
         # prompt for describing current emotion
         turn.prompt = build_describe_emotion_prompt(turn)
         # stream response from openAI
         turn.cur_npc_emotion = get_active_emotion(turn)["emotion"]
         print(f"\nCURRENT EMOTION {turn.cur_npc_emotion} \n")
-        turn.last_npc_text = streamResponse(turn,client=client)
+        turn.last_npc_text = streamResponse(turn,client=client, sio=sio)
         # debug
         print("\nNPC DESCRIBE EMOTION RESPONSE: ", turn.last_npc_text)
         # update npcs kb with its own response
         turn.npc_memory = f"[You just responded to {turn.player_name} with:] '{turn.last_npc_text}'"
         update_NPC_user_memory_query(turn)
 
-        socketio.emit(
+        sio.emit(
             "npc_responded",
             {"text": turn.last_npc_text},
             room=f"user:{turn.idUser}")

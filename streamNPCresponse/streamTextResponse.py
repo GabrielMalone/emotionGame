@@ -1,15 +1,14 @@
 import openAIqueries
-from sockets import socketio
 from turnContext import EmotionGameTurn
 from elevenlabsQueries import tts_cached
 import base64
 
-def streamResponse(t: EmotionGameTurn, client) -> str:
+def streamResponse(t: EmotionGameTurn, client, sio) -> str:
     full_text = []
     sentence_buffer = ""
     SENTENCE_END = {".", "?", "!"}
     speaking_emitted = False
-    speechOn = True
+    speechOn = False
     # ----------------------------------------------------------
     # stream text + audio
     # ----------------------------------------------------------
@@ -17,12 +16,12 @@ def streamResponse(t: EmotionGameTurn, client) -> str:
         full_text.append(token)
         sentence_buffer += token
 
-        socketio.emit(
+        sio.emit(
             "npc_text_token",
             {"token": token},
             room=f"user:{t.idUser}"
         )
-        socketio.sleep(0)
+        sio.sleep(0)
 
         if (
             speechOn
@@ -30,7 +29,7 @@ def streamResponse(t: EmotionGameTurn, client) -> str:
             and sentence_buffer.strip()[-1] in SENTENCE_END
         ):
             if not speaking_emitted:
-                socketio.emit(
+                sio.emit(
                     "npc_speaking",
                     {"idNPC": t.idNPC, "state": True},
                     room=f"user:{t.idUser}"
@@ -41,12 +40,12 @@ def streamResponse(t: EmotionGameTurn, client) -> str:
                 sentence_buffer, t.voiceId, t.cur_npc_emotion
                 ):
                 payload = base64.b64encode(audio_chunk).decode("utf-8")
-                socketio.emit(
+                sio.emit(
                     "npc_audio_chunk",
                     {"audio_b64": payload},
                     room=f"user:{t.idUser}"
                 )
-                socketio.sleep(0)
+                sio.sleep(0)
 
             sentence_buffer = ""
 
@@ -55,7 +54,7 @@ def streamResponse(t: EmotionGameTurn, client) -> str:
     # ----------------------------------------------------------
     if speechOn and sentence_buffer.strip():
         if not speaking_emitted:
-            socketio.emit(
+            sio.emit(
                 "npc_speaking",
                 {"idNPC": t.idNPC, "state": True},
                 room=f"user:{t.idUser}"
@@ -66,17 +65,17 @@ def streamResponse(t: EmotionGameTurn, client) -> str:
             sentence_buffer, t.voiceId, t.cur_npc_emotion
         ):
             payload = base64.b64encode(audio_chunk).decode("utf-8")
-            socketio.emit(
+            sio.emit(
                 "npc_audio_chunk",
                 {"audio_b64": payload},
                 room=f"user:{t.idUser}"
             )
-            socketio.sleep(0)
+            sio.sleep(0)
     # ----------------------------------------------------------
     # done sending
     # ----------------------------------------------------------
-    socketio.emit("npc_text_done", {}, room=f"user:{t.idUser}")
-    socketio.emit("npc_audio_done", {}, room=f"user:{t.idUser}")
+    sio.emit("npc_text_done", {}, room=f"user:{t.idUser}")
+    sio.emit("npc_audio_done", {}, room=f"user:{t.idUser}")
     # ----------------------------------------------------------
     # done sending
     # ----------------------------------------------------------
