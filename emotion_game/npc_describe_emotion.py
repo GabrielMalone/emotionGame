@@ -9,8 +9,6 @@ from turnContext import EmotionGameTurn
 
 def npc_describe_emotion(turn: EmotionGameTurn, sio) -> str:
     try:
-        print(f"game has started == {turn.game_started}")
-        print(f"guessing has started == {turn.guessing_started}")
         # prompt for describing current emotion
         turn.prompt = build_describe_emotion_prompt(turn)
         # stream response from openAI

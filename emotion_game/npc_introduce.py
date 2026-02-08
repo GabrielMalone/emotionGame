@@ -9,6 +9,7 @@ from flask import request, jsonify
 from llm_client import client
 from turnContext import EmotionGameTurn
 from emotion_game.player_guess import player_guess
+from emotion_game.npc_describe_emotion import npc_describe_emotion
 #------------------------------------------------------------------
 import os
 import mysql.connector
@@ -23,6 +24,8 @@ def connect()->object:
 #---------------------------------------------------------------------------------
 def npc_introduce(turn: EmotionGameTurn, sio):
 
+    # the following two conditions are if the game has started
+    # and the player walked away and came back
     db = connect()
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
@@ -42,6 +45,13 @@ def npc_introduce(turn: EmotionGameTurn, sio):
     if gameOver["all_emotions_guessed_correctly"] == 1:
         turn.game_over = True
         player_guess(turn, sio)
+        return
+    
+    res = get_active_emotion(turn)
+    if res:    
+        turn.cur_npc_emotion = res["emotion"]
+        turn.cues = openAIqueries.get_cues_for_emotion(turn.cur_npc_emotion, client)
+        npc_describe_emotion(turn, sio=sio)
         return
         
     # start out worried for this scenario
