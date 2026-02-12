@@ -5,11 +5,24 @@ from emotionGameQueries import assign_next_emotion
 import openAIqueries
 from llm_client import client
 from turnContext import EmotionGameTurn
+from emotionGameQueries import get_active_emotion
+# -----------------------------------------------------------------------------------
+import os
+import mysql.connector
+from turnContext import EmotionGameTurn
+# -----------------------------------------------------------------------------------
+def connect()->object:
+    return mysql.connector.connect(
+        user=os.getenv('DB_USER'), 
+        password=os.getenv('DB_PASSWORD'), 
+        database=os.getenv('DB_NAME'),
+        host=os.getenv('DB_HOST', 'localhost') )
+
 # -----------------------------------------------------------------------------------
 # config
 # -----------------------------------------------------------------------------------
-idUser = 1
-idNPC = 1
+idUser  = 1
+idNPC   = 1
 currentScene = """
     GAME SCENARIO
     -------------
@@ -31,7 +44,7 @@ currentScene = """
         "The way my body feels right now…"
 """
 voiceId = "SOYHLrjzK2X1ezoPC6cr"
-SERVER = "http://localhost:5001"
+SERVER  = "http://localhost:5001"
 active_turns = {} # this will be persistent for the lifetime of the socketio instance
 turn = EmotionGameTurn(
     idUser=idUser,
@@ -62,6 +75,40 @@ def assignEmotion(turn, sio):
     turn.guessing_started = True
 # -----------------------------------------------------------------------------------
 def start_game(sio):
+
+    # the following two conditions are if the game has started
+    # and the player walked away and came back
+    db = connect()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT
+        CASE
+            WHEN COUNT(*) > 0
+            AND COUNT(*) = SUM(guessed_correctly = 1)
+            THEN 1
+            ELSE 0
+        END AS all_emotions_guessed_correctly
+        FROM emotion_guess_game
+        WHERE idUser = %s
+        AND idNPC = %s;
+    """, (turn.idUser, turn.idNPC))
+    gameOver = cursor.fetchone()
+
+    if gameOver["all_emotions_guessed_correctly"] == 1:
+        turn.game_over = True
+        player_guess(turn, sio)
+        return
+    
+    res = get_active_emotion(turn)
+    if res:    
+        turn.cur_npc_emotion = res["emotion"]
+        turn.game_started = True
+        # turn.cues = openAIqueries.get_cues_for_emotion(turn.cur_npc_emotion, client)
+        # npc_describe_emotion(turn, sio=sio)
+        turn.guessing_started = True
+        player_guess(turn, sio)
+        return
+
     npc_introduce(turn, sio)
 # -----------------------------------------------------------------------------------
 def advance_game(turn, player_text, npc_text,sio):
@@ -91,7 +138,6 @@ def advance_game(turn, player_text, npc_text,sio):
         turn.npc_memory = res["turnData"].npc_memory
         assignEmotion(turn, sio)
         return
-
     if res["status"] == "False":
         return
 

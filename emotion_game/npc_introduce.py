@@ -11,48 +11,8 @@ from turnContext import EmotionGameTurn
 from emotion_game.player_guess import player_guess
 from emotion_game.npc_describe_emotion import npc_describe_emotion
 #------------------------------------------------------------------
-import os
-import mysql.connector
-from turnContext import EmotionGameTurn
-#------------------------------------------------------------------
-def connect()->object:
-    return mysql.connector.connect(
-        user=os.getenv('DB_USER'), 
-        password=os.getenv('DB_PASSWORD'), 
-        database=os.getenv('DB_NAME'),
-        host=os.getenv('DB_HOST', 'localhost') )
-#---------------------------------------------------------------------------------
+
 def npc_introduce(turn: EmotionGameTurn, sio):
-
-    # the following two conditions are if the game has started
-    # and the player walked away and came back
-    db = connect()
-    cursor = db.cursor(dictionary=True)
-    cursor.execute("""
-        SELECT
-        CASE
-            WHEN COUNT(*) > 0
-            AND COUNT(*) = SUM(guessed_correctly = 1)
-            THEN 1
-            ELSE 0
-        END AS all_emotions_guessed_correctly
-        FROM emotion_guess_game
-        WHERE idUser = %s
-        AND idNPC = %s;
-    """, (turn.idUser, turn.idNPC))
-    gameOver = cursor.fetchone()
-
-    if gameOver["all_emotions_guessed_correctly"] == 1:
-        turn.game_over = True
-        player_guess(turn, sio)
-        return
-    
-    res = get_active_emotion(turn)
-    if res:    
-        turn.cur_npc_emotion = res["emotion"]
-        turn.cues = openAIqueries.get_cues_for_emotion(turn.cur_npc_emotion, client)
-        npc_describe_emotion(turn, sio=sio)
-        return
         
     # start out worried for this scenario
     turn.cur_npc_emotion = "worried"

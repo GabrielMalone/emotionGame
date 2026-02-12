@@ -13,6 +13,12 @@ def npc_describe_emotion(turn: EmotionGameTurn, sio) -> str:
         turn.prompt = build_describe_emotion_prompt(turn)
         # stream response from openAI
         turn.cur_npc_emotion = get_active_emotion(turn)["emotion"]
+
+        sio.emit("current_emotion", 
+                turn.cur_npc_emotion,
+                room=f"user:{turn.idUser}"
+        )
+
         print(f"\nCURRENT EMOTION {turn.cur_npc_emotion} \n")
         turn.last_npc_text = streamResponse(turn,client=client, sio=sio)
         # debug

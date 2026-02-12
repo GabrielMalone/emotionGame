@@ -136,8 +136,18 @@ def classify_emotion_guess(t: EmotionGameTurn, client):
     return result.get("guessed_emotion")
 # ------------------------------------------------------------
 # OpenAI generator (returns list[str] or None)
+def normalize_emotion(emotion) -> str:
+    if isinstance(emotion, str):
+        return emotion
+    if isinstance(emotion, dict) and "emotion" in emotion:
+        return emotion["emotion"]
+    raise ValueError(f"Invalid emotion: {emotion!r}")
 # ------------------------------------------------------------
 def generate_emotion_cues(emotion: str, client) -> list[str] | None:
+
+    emotion = normalize_emotion(emotion)
+    print(f"DEBUGGING EMOTION SETTING {emotion}")
+
     system = (
         "You generate short,descriptions of emotions.\n"
         "Rules:\n"

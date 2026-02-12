@@ -45,7 +45,8 @@ def player_guess(turn: EmotionGameTurn, socketio) -> str:
     if (turn.emotion_guessed is None and turn.game_started):
         print(f"\nOTHER THAN GUESS BRANCH on statement {turn.player_text}\n")
         turn.npc_memory = f"{turn.player_name} just made a statement that was not a guess: {turn.player_text}"
-        update_NPC_user_memory_query(turn)
+        if (turn.player_text):
+            update_NPC_user_memory_query(turn)
         turn.npc_memory = getNPCmem(turn)
         turn.cues = openAIqueries.get_cues_for_emotion(npc_emotion, client=client)
         turn.prompt = build_no_guess_prompt(turn)

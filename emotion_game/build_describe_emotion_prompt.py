@@ -82,10 +82,10 @@ def build_describe_emotion_prompt(t : EmotionGameTurn) -> str:
 
         MEMORY USAGE RULE
         ----------------
-        - Use memory ONLY to avoid repeating phrasing or imagery.
-        - Do NOT summarize or reference memory explicitly.
+        - Use memory to avoid repeating phrasing or imagery.
         - If a transition or metaphor appears similar to past ones,
             you MUST select a different approach.
+        - Use memory to create natural transitions from what the player just said
         """
 
         print(f"\nT.GAME STARTED: {t.game_started}\n")
