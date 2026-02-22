@@ -6,11 +6,10 @@ from emotion_game.build_answered_all_correctly_prompt import build_end_round_pro
 from flask import request
 from llm_client import client
 from turnContext import EmotionGameTurn
-from emotionGameQueries import mark_emotion_guessed_correct, get_active_emotion
+from emotionGameQueries import mark_emotion_guessed_correct, get_active_emotion, get_num_correct
 from emotion_game.build_describe_emotion_prompt import build_describe_emotion_prompt
 from emotion_game.build_did_not_make_guess_prompt import build_no_guess_prompt
 from emotion_game.get_NPC_mem import getNPCmem
-
 
 def player_guess(turn: EmotionGameTurn, socketio) -> str:
 
@@ -62,6 +61,8 @@ def player_guess(turn: EmotionGameTurn, socketio) -> str:
         print(f"CORRECT! {npc_emotion} == {turn.emotion_guessed}")
         turn.emotion_guessed_id = npc_emotion_guessed_id
         mark_emotion_guessed_correct(turn)
+        num_correct = get_num_correct(turn)
+        socketio.emit("correct", num_correct)
         # update npc memory about this event
         turn.npc_memory = f"{turn.player_name} said: {turn.player_text}. As a result {turn.player_name} correctly identified your emotion {turn.emotion_guessed}"
         update_NPC_user_memory_query(turn)

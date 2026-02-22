@@ -49,6 +49,27 @@ def get_active_emotion(t: EmotionGameTurn) -> dict | None:
         cursor.close()
         db.close()
 #------------------------------------------------------------------
+def get_num_correct(t: EmotionGameTurn) -> dict | None:
+    db = connect()
+    try:
+        cursor = db.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT COUNT(*) AS num_correct
+            FROM emotion_guess_game
+            WHERE idUser = %s
+              AND idNPC = %s
+              AND guessed_correctly = 1;
+        """, (t.idUser, t.idNPC))
+
+        return cursor.fetchone()
+
+    except mysql.connector.Error as err:
+        print("MySQL Error:", err)
+        return None
+    finally:
+        cursor.close()
+        db.close()
+#------------------------------------------------------------------
 def assign_next_emotion(t: EmotionGameTurn):
     db = connect()
     try:

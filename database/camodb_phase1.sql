@@ -602,7 +602,7 @@ INSERT INTO npc_persona (
 
   'Speaks in natural, spoken sentences with a warm, steady rhythm. 
   Uses simple language without sounding instructional. 
-  Prefers everyday phrasing over metaphors unless describing her own feelings. 
+  Prefers everyday phrasing over metaphors. 
   When she does use metaphors, they come from ordinary life and feel personal, not illustrative. 
   Often blends observation and feeling into a single sentence. 
   Avoids overexplaining, avoids stacked descriptions, and sounds like someone talking, not teaching.',
@@ -613,7 +613,7 @@ INSERT INTO npc_persona (
 INSERT INTO background (idNPC, BGcontent)
 VALUES (
   1,
-  'Emory believes that emotions are easier to understand when they are explored through play, imagination, and gentle curiosity. She often uses games, metaphors, and collaborative guessing to help her patients notice body sensations, thoughts, and situations connected to feelings.'
+  'Emory believes that emotions are easier to understand when they are explored through play, imagination, and gentle curiosity. She often uses games, and collaborative guessing to help her patients notice body sensations, thoughts, and situations connected to feelings.'
 );
 
 INSERT INTO playerNPCrelationship (

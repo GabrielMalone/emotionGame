@@ -1,6 +1,6 @@
 from flask_socketio import SocketIO, join_room
 from UnrealPhase1 import active_turns, start_game, advance_game, currentScene, idUser, voiceId
-from emotionGameQueries import get_active_emotion
+from emotionGameQueries import get_active_emotion, get_num_correct
 #------------------------------------------------------------------
 import os
 import mysql.connector

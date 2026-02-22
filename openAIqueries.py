@@ -7,7 +7,7 @@ from turnContext import EmotionGameTurn
 def getResponseStream(t: EmotionGameTurn, client):
     try:
         response = client.chat.completions.create(
-            model="gpt-5.2",
+            model="gpt-4.1",
             temperature=0.85,
             top_p=0.9,
             stream=True, 
